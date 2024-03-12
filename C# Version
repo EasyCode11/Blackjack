@@ -1,0 +1,197 @@
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static int money = 2500;
+    static int bet = 0;
+    static List<string> playerCards = new List<string>();
+    static List<string> dealerCards = new List<string>();
+    static Random random = new Random();
+
+    static void Main(string[] args)
+    {
+        StartGame();
+    }
+
+    static void StartGame()
+    {
+        Console.WriteLine("Welcome to Blackjack!");
+        PlaceBet();
+    }
+
+    static void PlaceBet()
+    {
+        Console.Write($"You have ${money}. Enter your bet (between 1 and {money}): ");
+        bet = int.Parse(Console.ReadLine());
+        if (bet > 0 && bet <= money)
+        {
+            money -= bet;
+            Console.WriteLine($"Bet placed: ${bet}");
+            DealInitialCards();
+            PlayGame();
+        }
+        else
+        {
+            Console.WriteLine("Invalid bet amount. Please enter a valid bet.");
+            PlaceBet();
+        }
+    }
+
+    static void DealInitialCards()
+    {
+        playerCards = GetRandomCards(2);
+        dealerCards = GetRandomCards(2);
+        Console.Write("Your cards: ");
+        foreach (var card in playerCards)
+        {
+            Console.Write($"{card} ");
+        }
+        Console.WriteLine($"\nDealer's face-up card: {dealerCards[0]}");
+    }
+
+    static List<string> GetRandomCards(int num)
+    {
+        List<string> cards = new List<string> { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
+        List<string> randomCards = new List<string>();
+        for (int i = 0; i < num; ++i)
+        {
+            int randomIndex = random.Next(cards.Count);
+            randomCards.Add(cards[randomIndex]);
+        }
+        return randomCards;
+    }
+
+    static void PlayGame()
+    {
+        string response;
+        Console.Write("Do you want to hit or stand? (Type 'hit' or 'stand'): ");
+        response = Console.ReadLine();
+
+        while (response == "hit")
+        {
+            Hit();
+            Console.Write("Do you want to hit or stand? (Type 'hit' or 'stand'): ");
+            response = Console.ReadLine();
+        }
+
+        if (response == "stand")
+        {
+            // Implement the dealer's turn
+            // For simplicity, let's assume the dealer always hits until their score is 17 or more
+            while (CalculateScore(dealerCards) < 17)
+            {
+                dealerCards.Add(GetRandomCards(1)[0]);
+            }
+        }
+
+        EndGame();
+    }
+
+    static void Hit()
+    {
+        playerCards.AddRange(GetRandomCards(1));
+        Console.Write("Your cards: ");
+        foreach (var card in playerCards)
+        {
+            Console.Write($"{card} ");
+        }
+        Console.WriteLine();
+        if (CalculateScore(playerCards) > 21)
+        {
+            Console.WriteLine("Bust! Your score is over 21. You lose.");
+            EndGame();
+        }
+    }
+
+    static int CalculateScore(List<string> cards)
+    {
+        // Simple scoring logic (adjust as needed)
+        int score = 0;
+        foreach (var card in cards)
+        {
+            if (card == "A")
+            {
+                score += 11; // Assume A is worth 11
+            }
+            else if (card == "K" || card == "Q" || card == "J")
+            {
+                score += 10;
+            }
+            else
+            {
+                score += int.Parse(card);
+            }
+        }
+
+        // Adjust for Aces
+        foreach (var card in cards)
+        {
+            if (card == "A" && score > 21)
+            {
+                score -= 10; // Change the value of A from 11 to 1
+            }
+        }
+
+        return score;
+    }
+
+    static void EndGame()
+    {
+        Console.WriteLine("Game Over!");
+        Console.Write("Your cards: ");
+        foreach (var card in playerCards)
+        {
+            Console.Write($"{card} ");
+        }
+        Console.WriteLine($"\nYour score: {CalculateScore(playerCards)}");
+        Console.Write("Dealer's cards: ");
+        foreach (var card in dealerCards)
+        {
+            Console.Write($"{card} ");
+        }
+        Console.WriteLine($"\nDealer's score: {CalculateScore(dealerCards)}");
+
+        if (CalculateScore(playerCards) > 21)
+        {
+            Console.WriteLine($"You lose ${bet}");
+        }
+        else if (CalculateScore(playerCards) == CalculateScore(dealerCards))
+        {
+            Console.WriteLine("It's a tie! You neither win nor lose money.");
+            money += bet;
+        }
+        else if (CalculateScore(dealerCards) > 21 || CalculateScore(playerCards) > CalculateScore(dealerCards))
+        {
+            money += bet * 2;
+            Console.WriteLine($"Congratulations! You win ${bet}");
+        }
+        else
+        {
+            Console.WriteLine($"Dealer wins! You lose ${bet}");
+        }
+
+        Console.WriteLine($"Your current money: ${money}");
+
+        char playAgain;
+        Console.Write("Do you want to play again? (y/n): ");
+        playAgain = Console.ReadKey().KeyChar;
+        Console.WriteLine();
+        if (playAgain == 'y' || playAgain == 'Y')
+        {
+            ResetGame();
+            StartGame();
+        }
+        else
+        {
+            Console.WriteLine("Thanks for playing!");
+        }
+    }
+
+    static void ResetGame()
+    {
+        playerCards.Clear();
+        dealerCards.Clear();
+        bet = 0;
+    }
+}
