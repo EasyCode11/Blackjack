@@ -1,0 +1,121 @@
+let money = 2500;
+let bet = 0;
+let playerCards = [];
+let dealerCards = [];
+
+function startGame() {
+    alert("Welcome to Blackjack!");
+    placeBet();
+}
+
+function placeBet() {
+    bet = parseInt(prompt("You have $" + money + ". Enter your bet (between 1 and " + money + "):"));
+    if (bet > 0 && bet <= money) {
+        money -= bet;
+        alert("Bet placed: $" + bet);
+        dealInitialCards();
+        playGame();
+    } else {
+        alert("Invalid bet amount. Please enter a valid bet.");
+        placeBet();
+    }
+}
+
+function dealInitialCards() {
+    playerCards = getRandomCards(2);
+    dealerCards = getRandomCards(2);
+    alert("Your cards: " + playerCards.join(', ') + "\nDealer's face-up card: " + dealerCards[0]);
+}
+
+function getRandomCards(num) {
+    const cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+    const randomCards = [];
+    for (let i = 0; i < num; i++) {
+        const randomIndex = Math.floor(Math.random() * cards.length);
+        randomCards.push(cards[randomIndex]);
+    }
+    return randomCards;
+}
+
+function playGame() {
+    let response = prompt("Do you want to hit or stand? (Type 'hit' or 'stand')");
+
+    while (response.toLowerCase() === "hit") {
+        hit();
+        response = prompt("Do you want to hit or stand? (Type 'hit' or 'stand')");
+    }
+
+    if (response.toLowerCase() === "stand") {
+        while (calculateScore(dealerCards) < 17) {
+            dealerCards.push(getRandomCards(1)[0]);
+        }
+    }
+
+    endGame();
+}
+
+function hit() {
+    playerCards.push(getRandomCards(1)[0]);
+    alert("Your cards: " + playerCards.join(', '));
+    if (calculateScore(playerCards) > 21) {
+        alert("Bust! Your score is over 21. You lose.");
+        endGame();
+    }
+}
+
+function calculateScore(cards) {
+    let score = 0;
+    for (const card of cards) {
+        if (card === "A") {
+            score += 11;
+        } else if (card === "K" || card === "Q" || card === "J") {
+            score += 10;
+        } else {
+            score += parseInt(card);
+        }
+    }
+
+    for (const card of cards) {
+        if (card === "A" && score > 21) {
+            score -= 10;
+        }
+    }
+
+    return score;
+}
+
+function endGame() {
+    alert("Game Over!");
+    alert("Your cards: " + playerCards.join(', ') + "\nYour score: " + calculateScore(playerCards));
+    alert("Dealer's cards: " + dealerCards.join(', ') + "\nDealer's score: " + calculateScore(dealerCards));
+
+    if (calculateScore(playerCards) > 21) {
+        alert("You lose $" + bet);
+    } else if (calculateScore(playerCards) === calculateScore(dealerCards)) {
+        alert("It's a tie! You neither win nor lose money.");
+        money += bet;
+    } else if (calculateScore(dealerCards) > 21 || calculateScore(playerCards) > calculateScore(dealerCards)) {
+        money += bet * 2;
+        alert("Congratulations! You win $" + bet);
+    } else {
+        alert("Dealer wins! You lose $" + bet);
+    }
+
+    alert("Your current money: $" + money);
+
+    const playAgain = confirm("Do you want to play again?");
+    if (playAgain) {
+        resetGame();
+        startGame();
+    } else {
+        alert("Thanks for playing!");
+    }
+}
+
+function resetGame() {
+    playerCards = [];
+    dealerCards = [];
+    bet = 0;
+}
+
+startGame();
