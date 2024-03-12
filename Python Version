@@ -1,0 +1,106 @@
+import random
+
+money = 2500
+bet = 0
+player_cards = []
+dealer_cards = []
+
+def start_game():
+    global money
+    print("Welcome to Blackjack!")
+    place_bet()
+
+def place_bet():
+    global money, bet
+    bet = int(input("You have ${}. Enter your bet (between 1 and {}): ".format(money, money)))
+    if 0 < bet <= money:
+        money -= bet
+        print("Bet placed: ${}".format(bet))
+        deal_initial_cards()
+        play_game()
+    else:
+        print("Invalid bet amount. Please enter a valid bet.")
+        place_bet()
+
+def deal_initial_cards():
+    global player_cards, dealer_cards
+    player_cards = get_random_cards(2)
+    dealer_cards = get_random_cards(2)
+    print("Your cards: {}\nDealer's face-up card: {}".format(', '.join(player_cards), dealer_cards[0]))
+
+def get_random_cards(num):
+    cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+    return random.sample(cards, num)
+
+def play_game():
+    global player_cards, dealer_cards
+    response = input("Do you want to hit or stand? (Type 'hit' or 'stand'): ")
+
+    while response.lower() == "hit":
+        hit()
+        response = input("Do you want to hit or stand? (Type 'hit' or 'stand'): ")
+
+    if response.lower() == "stand":
+        while calculate_score(dealer_cards) < 17:
+            dealer_cards.append(get_random_cards(1)[0])
+
+    end_game()
+
+def hit():
+    global player_cards
+    player_cards.append(get_random_cards(1)[0])
+    print("Your cards: {}".format(', '.join(player_cards)))
+    if calculate_score(player_cards) > 21:
+        print("Bust! Your score is over 21. You lose.")
+        end_game()
+
+def calculate_score(cards):
+    score = 0
+    for card in cards:
+        if card == "A":
+            score += 11
+        elif card in ["K", "Q", "J"]:
+            score += 10
+        else:
+            score += int(card)
+
+    for card in cards:
+        if card == "A" and score > 21:
+            score -= 10
+
+    return score
+
+def end_game():
+    global money, bet, player_cards, dealer_cards
+    print("Game Over!")
+    print("Your cards: {}\nYour score: {}".format(', '.join(player_cards), calculate_score(player_cards)))
+    print("Dealer's cards: {}\nDealer's score: {}".format(', '.join(dealer_cards), calculate_score(dealer_cards)))
+
+    if calculate_score(player_cards) > 21:
+        print("You lose ${}".format(bet))
+    elif calculate_score(player_cards) == calculate_score(dealer_cards):
+        print("It's a tie! You neither win nor lose money.")
+        money += bet
+    elif calculate_score(dealer_cards) > 21 or calculate_score(player_cards) > calculate_score(dealer_cards):
+        money += bet * 2
+        print("Congratulations! You win ${}".format(bet))
+    else:
+        print("Dealer wins! You lose ${}".format(bet))
+
+    print("Your current money: ${}".format(money))
+
+    play_again = input("Do you want to play again? (Type 'yes' or 'no'): ")
+    if play_again.lower() == "yes":
+        reset_game()
+        start_game()
+    else:
+        print("Thanks for playing!")
+
+def reset_game():
+    global player_cards, dealer_cards, bet
+    player_cards = []
+    dealer_cards = []
+    bet = 0
+
+if __name__ == "__main__":
+    start_game()
