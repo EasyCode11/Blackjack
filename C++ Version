@@ -1,0 +1,168 @@
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+int money = 2500;
+int bet = 0;
+vector<string> playerCards;
+vector<string> dealerCards;
+
+void startGame();
+void placeBet();
+void dealInitialCards();
+vector<string> getRandomCards(int num);
+void playGame();
+void hit();
+int calculateScore(vector<string>& cards);
+void endGame();
+void resetGame();
+
+int main() {
+    startGame();
+    return 0;
+}
+
+void startGame() {
+    cout << "Welcome to Blackjack!" << endl;
+    placeBet();
+}
+
+void placeBet() {
+    cout << "You have $" << money << ". Enter your bet (between 1 and " << money << "): ";
+    cin >> bet;
+    if (bet > 0 && bet <= money) {
+        money -= bet;
+        cout << "Bet placed: $" << bet << endl;
+        dealInitialCards();
+        playGame();
+    } else {
+        cout << "Invalid bet amount. Please enter a valid bet." << endl;
+        placeBet();
+    }
+}
+
+void dealInitialCards() {
+    playerCards = getRandomCards(2);
+    dealerCards = getRandomCards(2);
+    cout << "Your cards: ";
+    for (const auto& card : playerCards) {
+        cout << card << " ";
+    }
+    cout << "\nDealer's face-up card: " << dealerCards[0] << endl;
+}
+
+vector<string> getRandomCards(int num) {
+    vector<string> cards = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+    vector<string> randomCards;
+    srand(time(0));
+    for (int i = 0; i < num; ++i) {
+        int randomIndex = rand() % cards.size();
+        randomCards.push_back(cards[randomIndex]);
+    }
+    return randomCards;
+}
+
+void playGame() {
+    string response;
+    cout << "Do you want to hit or stand? (Type 'hit' or 'stand'): ";
+    cin >> response;
+
+    while (response == "hit") {
+        hit();
+        cout << "Do you want to hit or stand? (Type 'hit' or 'stand'): ";
+        cin >> response;
+    }
+
+    if (response == "stand") {
+        // Implement the dealer's turn
+        // For simplicity, let's assume the dealer always hits until their score is 17 or more
+        while (calculateScore(dealerCards) < 17) {
+            dealerCards.push_back(getRandomCards(1)[0]);
+        }
+    }
+
+    endGame();
+}
+
+void hit() {
+    playerCards.push_back(getRandomCards(1)[0]);
+    cout << "Your cards: ";
+    for (const auto& card : playerCards) {
+        cout << card << " ";
+    }
+    cout << endl;
+    if (calculateScore(playerCards) > 21) {
+        cout << "Bust! Your score is over 21. You lose." << endl;
+        endGame();
+    }
+}
+
+int calculateScore(vector<string>& cards) {
+    // Simple scoring logic (adjust as needed)
+    int score = 0;
+    for (const auto& card : cards) {
+        if (card == "A") {
+            score += 11; // Assume A is worth 11
+        } else if (card == "K" || card == "Q" || card == "J") {
+            score += 10;
+        } else {
+            score += stoi(card);
+        }
+    }
+
+    // Adjust for Aces
+    for (const auto& card : cards) {
+        if (card == "A" && score > 21) {
+            score -= 10; // Change the value of A from 11 to 1
+        }
+    }
+
+    return score;
+}
+
+void endGame() {
+    cout << "Game Over!" << endl;
+    cout << "Your cards: ";
+    for (const auto& card : playerCards) {
+        cout << card << " ";
+    }
+    cout << "\nYour score: " << calculateScore(playerCards) << endl;
+    cout << "Dealer's cards: ";
+    for (const auto& card : dealerCards) {
+        cout << card << " ";
+    }
+    cout << "\nDealer's score: " << calculateScore(dealerCards) << endl;
+
+    if (calculateScore(playerCards) > 21) {
+        cout << "You lose $" << bet << endl;
+    } else if (calculateScore(playerCards) == calculateScore(dealerCards)) {
+        cout << "It's a tie! You neither win nor lose money." << endl;
+        money += bet;
+    } else if (calculateScore(dealerCards) > 21 || calculateScore(playerCards) > calculateScore(dealerCards)) {
+        money += bet * 2;
+        cout << "Congratulations! You win $" << bet << endl;
+    } else {
+        cout << "Dealer wins! You lose $" << bet << endl;
+    }
+
+    cout << "Your current money: $" << money << endl;
+
+    char playAgain;
+    cout << "Do you want to play again? (y/n): ";
+    cin >> playAgain;
+    if (playAgain == 'y' || playAgain == 'Y') {
+        resetGame();
+        startGame();
+    } else {
+        cout << "Thanks for playing!" << endl;
+    }
+}
+
+void resetGame() {
+    playerCards.clear();
+    dealerCards.clear();
+    bet = 0;
+}
